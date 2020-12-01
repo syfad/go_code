@@ -14,12 +14,30 @@ import (
 var reIDcard = `.*[1-9]\d{5}((19\d{2})|(20[0-2]\d))((0[1-9])|(1[0-2]))((0[1-9])|(1\d)|(2\d)|(3[01]))\d{3}[\dXx].*`
 
 
-var writeChan chan string
-var readChan chan string
+//var writeChan chan string
+//var readChan chan string
 
 func main() {
-	writeChan = make(chan string)
+	writeChan := make(chan string)
+	readChan := make(chan string)
 	read2(writeChan)
+	createPool(256, writeChan, readChan)
+
+	file, err := os.OpenFile("format_after.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("open file failed, err:", err)
+		return
+	}
+
+	defer file.Close()
+
+	for read := range readChan {
+		write := bufio.NewWriter(file)
+		write.WriteString(read)
+		write.Flush()
+	}
+
+
 
 	//createPoll(256, writeChan, readChan)
 }
@@ -72,4 +90,14 @@ func read2(c chan string)  {
 		//fmt.Println(results[1])
 	}
 
+}
+
+func createPool(num int, writeChan chan string, readChan chan string)  {
+	for i :=0; i<num;i++{
+		go func(writeChan chan string, readChan chan string) {
+			for writeline := range writeChan{
+				readChan <- writeline
+			}
+		}(writeChan, readChan)
+	}
 }
