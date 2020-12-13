@@ -53,7 +53,7 @@ func read() {
 	}
 
 	// 读优质文件，写入对应的省份管道
-	file, _ := os.Open("./kaifang_good.txt")
+	file, _ := os.Open("/Users/sun_admin/Desktop/go7期/format_after.txt")
 	defer file.Close()
 	// 缓冲读取
 	reader := bufio.NewReader(file)
@@ -101,4 +101,5 @@ func HandleError(err error)  {
 
 func main() {
 	read()
+
 }

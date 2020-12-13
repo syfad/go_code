@@ -9,5 +9,6 @@ func main() {
 
 	fmt.Printf("hello Yuan!")
 
+	v := make(chan<- string, 1024)
 
 }

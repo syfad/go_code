@@ -6,10 +6,10 @@ import (
 	"github.com/axgle/mahonia"
 	"io"
 	"os"
-	"regexp"
+	"strings"
 )
 
-var reIDcard = `.*[1-9]\d{5}((19\d{2})|(20[0-2]\d))((0[1-9])|(1[0-2]))((0[1-9])|(1\d)|(2\d)|(3[01]))\d{3}[\dXx].*`
+//var reIDcard = `.*[1-9]\d{5}((19\d{2})|(20[0-2]\d))((0[1-9])|(1[0-2]))((0[1-9])|(1\d)|(2\d)|(3[01]))\d{3}[\dXx].*`
 
 
 func main() {
@@ -37,9 +37,13 @@ func read2()  {
 	defer file.Close()
 	reader := bufio.NewReader(file)
 
-	file1, err1 := os.OpenFile("format_after.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	goodFile, err1 := os.OpenFile("goodFile.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	HandleError(err1)
-	defer file1.Close()
+	badFile, err1 := os.OpenFile("badFile.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	HandleError(err1)
+
+	defer goodFile.Close()
+	defer badFile.Close()
 
 	for {
 		lineBytes, _, err := reader.ReadLine()
@@ -47,18 +51,30 @@ func read2()  {
 			break
 		}
 		myStr := string(lineBytes)
-		xxStr := ConvertEncoding(myStr, "GBK")
+		lineStr := ConvertEncoding(myStr, "GBK")
 		//fmt.Println(myStr)
-		re := regexp.MustCompile(reIDcard)
-		results := re.FindAllStringSubmatch(xxStr, -1)
-		//results := re.FindAllStringSubmatch(myStr, -1)
-		for _, res := range results{
-			//fmt.Println(res[0])
+		//正则匹配，改成匹配len长度
+		//re := regexp.MustCompile(reIDcard)
+		fields := strings.Split(lineStr, ",")
 
-			w_lin := bufio.NewWriter(file1)
-			w_lin.WriteString(res[0]+"\n")
-			w_lin.Flush()
-			}
+		if len(fields) >= 2 && len(fields[1]) == 18{
+			goodFile.WriteString(lineStr + "\n")
+			fmt.Printf("GOOD-File", lineStr)
+		}else {
+			badFile.WriteString(lineStr + "\n")
+			fmt.Printf("BAD-File", lineStr)
+		}
+
+		//正则匹配写入的注释了
+		//results := re.FindAllStringSubmatch(xxStr, -1)
+		////results := re.FindAllStringSubmatch(myStr, -1)
+		//for _, res := range results{
+		//	//fmt.Println(res[0])
+		//
+		//	w_lin := bufio.NewWriter(file1)
+		//	w_lin.WriteString(res[0]+"\n")
+		//	w_lin.Flush()
+		//	}
 		}
 		//fmt.Println(results[1])
 	}
